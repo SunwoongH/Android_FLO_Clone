@@ -22,6 +22,32 @@ class HomeFragment : Fragment() {
             (context as MainActivity).supportFragmentManager.beginTransaction().replace(R.id.main_frm, AlbumFragment()).commitAllowingStateLoss()
         }
 
+        val bannerAdapter = BannerVPAdapter(this)
+        bannerAdapter.addFragment(BannerFragment(R.drawable.img_home_viewpager_exp))
+        bannerAdapter.addFragment(BannerFragment(R.drawable.img_home_viewpager_exp2))
+        binding.homeBannerVp.adapter = bannerAdapter
+
         return binding.root
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//val bannerAdapter = BannerVPAdapter(this)
+//bannerAdapter.addFragment(BannerFragment(R.drawable.img_home_viewpager_exp))
+//bannerAdapter.addFragment(BannerFragment(R.drawable.img_home_viewpager_exp2))
+//binding.homeBannerVp.adapter = bannerAdapter
+//binding.homeBannerVp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
