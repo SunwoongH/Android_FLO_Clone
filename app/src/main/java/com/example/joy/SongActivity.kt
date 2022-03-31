@@ -22,7 +22,6 @@ class SongActivity : AppCompatActivity() {
         binding.songMinplayerIv.setOnClickListener {
             setPlayerStatus(true)
         }
-
         // 중지 -> 재생
         binding.songPauseIv.setOnClickListener {
             setPlayerStatus(false)
