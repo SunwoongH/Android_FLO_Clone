@@ -19,8 +19,7 @@ class LockerFragment : Fragment() {
     ): View? {
         binding = FragmentLockerBinding.inflate(inflater, container, false)
 
-
-        var lockerAdapter = LockerVPAdapter(this)
+        val lockerAdapter = LockerVPAdapter(this)
         binding.songLockerVp.adapter = lockerAdapter
         TabLayoutMediator(binding.songLockerTb, binding.songLockerVp) {
             tab, position -> tab.text = tapInformation[position]
