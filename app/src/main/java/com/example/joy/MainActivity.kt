@@ -8,12 +8,15 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.joy.databinding.ActivityMainBinding
+import com.google.gson.Gson
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
-    private lateinit var song: Song
+    private var song: Song = Song()
     private lateinit var timer: Timer
     private lateinit var activityLauncher: ActivityResultLauncher<Intent>
+    private var gson: Gson = Gson()
+    private var isSwitch: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,9 +24,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initSong()
-        startTimer()
-        setMiniPlayer()
+        //initSong()
+        //startTimer()
+        //setMiniPlayer()
 
         setActivityLauncher()
 
@@ -32,10 +35,38 @@ class MainActivity : AppCompatActivity() {
 
         initBottomNavigation()
     }
-    
-    // song data class 초기값 설정
-    private fun initSong() {
-        song = Song("LILAC", "아이유 (IU)", 0, 60, false)
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("life_cycle", "start")
+        val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
+        val songJson = sharedPreferences.getString("songData", null)
+        song = if (songJson == null) {
+            Song("LILAC", "아이유 (IU)", 0, 0f,60, false, "lilac_iu")
+        } else {
+            gson.fromJson(songJson, Song::class.java)
+        }
+        //if (song.second == song.playTime) song.second = 0
+        Log.d("SONG", "${song.second}")
+
+        setMiniPlayer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("life_cycle", "pause")
+        if (!isSwitch) setMiniPlayerStatus(false)
+        //song.second = ((binding.mainSongProgressSb.progress * song.playTime) / 100) / 1000
+        song.second = timer.getSecond()
+        song.mills = timer.getMills()
+        Log.d("SONG", "${song.second}")
+        val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val songJson = gson.toJson(song)
+        editor.putString("songData", songJson)
+        editor.apply()
+        timer.flag = true
+        timer.interrupt()
     }
     
     // activity launcher 설정
@@ -44,8 +75,9 @@ class MainActivity : AppCompatActivity() {
             ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 song = result.data?.getSerializableExtra("song") as Song
-                startTimer()
-                setMiniPlayer()
+                isSwitch = false
+                //startTimer()
+                //setMiniPlayer()
             }
         }
     }
@@ -53,9 +85,10 @@ class MainActivity : AppCompatActivity() {
     // MainActivity -> SongActivity
     private fun switchToSongActivityOnClick() {
         binding.mainPlayerCl.setOnClickListener {
+            isSwitch = true
             timer.flag = true
             timer.interrupt()
-            song = Song(song.title, song.singer, timer.getSecond(), timer.getPlayTime(), timer.getIsPlaying())
+            song = Song(song.title, song.singer, timer.getSecond(), timer.getMills(), timer.getPlayTime(), timer.getIsPlaying(), song.music)
             val intent = Intent(this, SongActivity::class.java)
             intent.putExtra("song", song)
             activityLauncher.launch(intent)
@@ -76,8 +109,9 @@ class MainActivity : AppCompatActivity() {
     private fun setMiniPlayer() {
         binding.mainMiniplayerTitleTv.text = song.title
         binding.mainMiniplayerSingerTv.text = song.singer
-        binding.mainSongProgressSb.progress = (song.second * 100000 / song.playTime)
+        binding.mainSongProgressSb.progress = ((song.mills * 100) / song.playTime).toInt()
 
+        startTimer()
         setMiniPlayerStatus(song.isPlaying)
     }
 
@@ -98,7 +132,7 @@ class MainActivity : AppCompatActivity() {
     // 미니 플레이어 timer thread 시작
     private fun startTimer() {
         timer = Timer(song.playTime, song.isPlaying)
-        timer.set(song.second)
+        timer.set(song.second, song.mills)
         timer.start()
     }
 
@@ -107,12 +141,14 @@ class MainActivity : AppCompatActivity() {
         private var second: Int = 0
         private var mills: Float = 0f
 
-        fun set(second: Int) {
+        fun set(second: Int, mills: Float) {
             this.second = second
-            this.mills = (second * 1000).toFloat()
+            this.mills = mills
         }
 
         fun getSecond(): Int = second
+
+        fun getMills(): Float = mills
 
         fun getPlayTime(): Int = playTime
 
@@ -127,7 +163,7 @@ class MainActivity : AppCompatActivity() {
                         sleep(50)
                         mills += 50
                         runOnUiThread {
-                            binding.mainSongProgressSb.progress = (mills * 100 / playTime).toInt()
+                            binding.mainSongProgressSb.progress = ((mills * 100) / playTime).toInt()
                         }
                         if (mills % 1000 == 0f) {
                             second++

@@ -61,6 +61,7 @@ class HomeFragment : Fragment() {
 
     inner class AutoViewPager(private val panelAdapter: PanelVPAdapter): Thread() {
         override fun run() {
+            super.run()
             try {
                 while (true) {
                     sleep(2500)
