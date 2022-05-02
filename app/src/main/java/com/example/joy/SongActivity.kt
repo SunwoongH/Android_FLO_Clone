@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.example.joy.data.Music
+import com.example.joy.data.Song
 import com.example.joy.databinding.ActivitySongBinding
 import com.google.gson.Gson
 
@@ -14,7 +16,6 @@ class SongActivity : AppCompatActivity() {
     private lateinit var song: Song
     private lateinit var timer: Timer
     private var isSwitch: Boolean = false
-    private var mediaPlayer: MediaPlayer? = null
     private var gson: Gson = Gson()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +24,7 @@ class SongActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         song = intent.getSerializableExtra("song") as Song
+
         setMainPlayer()
 
         switchToMainActivityOnClick()
@@ -35,16 +37,10 @@ class SongActivity : AppCompatActivity() {
         song.second = timer.getSecond()
         song.mills = timer.getMills()
         val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
-        val editor = sharedPreferences.edit() // 에디터
+        val editor = sharedPreferences.edit()
         val songJson = gson.toJson(song)
         editor.putString("songData", songJson)
         editor.apply()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mediaPlayer?.release()
-        mediaPlayer = null
     }
 
     // SongActivity -> MainActivity
@@ -53,7 +49,7 @@ class SongActivity : AppCompatActivity() {
             isSwitch = true
             timer.flag = true
             timer.interrupt()
-            song = Song(song.title, song.singer, timer.getSecond(), timer.getMills(), timer.getPlayTime(), timer.getIsPlaying(), song.music)
+            song = Song(song.title, song.singer, timer.getSecond(), timer.getMills(), timer.getPlayTime(), timer.getIsPlaying(), song.music, song.coverImg)
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("song", song)
             setResult(RESULT_OK, intent)
@@ -73,15 +69,12 @@ class SongActivity : AppCompatActivity() {
 
     // 메인 플레이어 synchronization
     private fun setMainPlayer() {
-        val music = resources.getIdentifier(song.music, "raw", this.packageName)
-        mediaPlayer = MediaPlayer.create(this, music)
-        song.playTime = mediaPlayer!!.duration / 1000
-
         binding.songMusicTitleTv.text = song.title
         binding.songSingerNameTv.text = song.singer
         binding.songStartTimeTv.text = String.format("%02d:%02d", song.second / 60, song.second % 60)
         binding.songEndTimeTv.text = String.format("%02d:%02d", song.playTime / 60, song.playTime % 60)
         binding.songProgressSb.progress = ((song.mills * 100) / song.playTime).toInt()
+        binding.songAlbumIv.setImageResource(song.coverImg!!)
 
         startTimer()
         setMainPlayerStatus(song.isPlaying)
@@ -95,12 +88,12 @@ class SongActivity : AppCompatActivity() {
         if (isPlaying) {
             binding.songMainPlayerIv.visibility = View.GONE
             binding.songPauseIv.visibility = View.VISIBLE
-            mediaPlayer?.start()
+            MainActivity.music.startMediaPlayer()
         } else {
             binding.songMainPlayerIv.visibility = View.VISIBLE
             binding.songPauseIv.visibility = View.GONE
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.pause()
+            if (MainActivity.music.isPlayingMediaPlayer() == true) {
+                MainActivity.music.pauseMediaPlayer()
             }
         }
     }
@@ -150,7 +143,7 @@ class SongActivity : AppCompatActivity() {
                     }
                     if (flag) sleep(1L)
                 }
-            }catch (e: InterruptedException) {
+            } catch (e: InterruptedException) {
                 Log.d("SONG", "SongActivity Thread가 죽었습니다. ${e.message}")
             }
         }

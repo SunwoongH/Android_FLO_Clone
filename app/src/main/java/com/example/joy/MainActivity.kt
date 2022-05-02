@@ -7,6 +7,9 @@ import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.joy.data.Album
+import com.example.joy.data.Music
+import com.example.joy.data.Song
 import com.example.joy.databinding.ActivityMainBinding
 import com.google.gson.Gson
 
@@ -15,18 +18,15 @@ class MainActivity : AppCompatActivity() {
     private var song: Song = Song()
     private lateinit var timer: Timer
     private lateinit var activityLauncher: ActivityResultLauncher<Intent>
-    private var gson: Gson = Gson()
     private var isSwitch: Boolean = false
+    private var gson: Gson = Gson()
+    companion object { var music: Music = Music() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_Joy)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        //initSong()
-        //startTimer()
-        //setMiniPlayer()
 
         setActivityLauncher()
 
@@ -38,28 +38,23 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Log.d("life_cycle", "start")
         val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
         val songJson = sharedPreferences.getString("songData", null)
         song = if (songJson == null) {
-            Song("LILAC", "아이유 (IU)", 0, 0f,60, false, "lilac_iu")
+            Song("LILAC", "아이유 (IU)", 0, 0f,60, false, "music_lilac", R.drawable.img_album_exp2)
         } else {
             gson.fromJson(songJson, Song::class.java)
         }
         //if (song.second == song.playTime) song.second = 0
-        Log.d("SONG", "${song.second}")
 
         setMiniPlayer()
     }
 
     override fun onPause() {
         super.onPause()
-        Log.d("life_cycle", "pause")
         if (!isSwitch) setMiniPlayerStatus(false)
-        //song.second = ((binding.mainSongProgressSb.progress * song.playTime) / 100) / 1000
         song.second = timer.getSecond()
         song.mills = timer.getMills()
-        Log.d("SONG", "${song.second}")
         val sharedPreferences = getSharedPreferences("song", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         val songJson = gson.toJson(song)
@@ -76,8 +71,6 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == RESULT_OK) {
                 song = result.data?.getSerializableExtra("song") as Song
                 isSwitch = false
-                //startTimer()
-                //setMiniPlayer()
             }
         }
     }
@@ -88,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             isSwitch = true
             timer.flag = true
             timer.interrupt()
-            song = Song(song.title, song.singer, timer.getSecond(), timer.getMills(), timer.getPlayTime(), timer.getIsPlaying(), song.music)
+            song = Song(song.title, song.singer, timer.getSecond(), timer.getMills(), timer.getPlayTime(), timer.getIsPlaying(), song.music, song.coverImg)
             val intent = Intent(this, SongActivity::class.java)
             intent.putExtra("song", song)
             activityLauncher.launch(intent)
@@ -105,8 +98,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 앨범 플레이 아이콘 클릭시 미니 플레이어 synchronization
+    fun changeMusic(album: Album) {
+        if (music.statusMediaPlayer()) {
+            music.releaseMediaPlayer()
+            timer.flag = true
+            timer.interrupt()
+        }
+        song = Song(album.title, album.singer, 0, 0f, 0, true, album.name, album.coverImg)
+        setMiniPlayer()
+    }
+
     // 미니 플레이어 synchronization
     private fun setMiniPlayer() {
+        if (!music.statusMediaPlayer()) {
+            music.createMediaPlayer(resources.getIdentifier(song.music, "raw", this.packageName), this)
+            song.playTime = music.getDuration() / 1000
+        }
+
         binding.mainMiniplayerTitleTv.text = song.title
         binding.mainMiniplayerSingerTv.text = song.singer
         binding.mainSongProgressSb.progress = ((song.mills * 100) / song.playTime).toInt()
@@ -123,9 +132,13 @@ class MainActivity : AppCompatActivity() {
         if (isPlaying) {
             binding.mainMiniplayerOffBtn.visibility = View.GONE
             binding.mainMiniplayerOnBtn.visibility = View.VISIBLE
+            music.startMediaPlayer()
         } else {
             binding.mainMiniplayerOffBtn.visibility = View.VISIBLE
             binding.mainMiniplayerOnBtn.visibility = View.GONE
+            if (music.isPlayingMediaPlayer() == true) {
+                music.pauseMediaPlayer()
+            }
         }
     }
 

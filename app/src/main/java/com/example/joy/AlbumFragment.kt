@@ -4,8 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.joy.adapter.AlbumVPAdapter
+import com.example.joy.data.Album
 import com.example.joy.databinding.FragmentAlbumBinding
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.gson.Gson
@@ -13,7 +14,6 @@ import com.google.gson.Gson
 class AlbumFragment : Fragment() {
     lateinit var binding: FragmentAlbumBinding
     private var gson: Gson = Gson()
-
     private val tapInformation = arrayListOf("수록곡", "상세정보", "영상")
 
     override fun onCreateView(
@@ -32,7 +32,7 @@ class AlbumFragment : Fragment() {
             (context as MainActivity).supportFragmentManager.beginTransaction().replace(R.id.main_frm, HomeFragment()).commitAllowingStateLoss()
         }
 
-        // TabLayout와 ViewPager2의 Synchronization
+        // TabLayout & ViewPager2의 Synchronization
         val albumAdapter = AlbumVPAdapter(this)
         binding.albumContentVp.adapter = albumAdapter
         TabLayoutMediator(binding.albumContentTb, binding.albumContentVp) {

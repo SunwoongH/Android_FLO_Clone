@@ -9,6 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.joy.adapter.AlbumRVAdapter
+import com.example.joy.adapter.BannerVPAdapter
+import com.example.joy.adapter.PanelVPAdapter
+import com.example.joy.data.Album
 import com.example.joy.databinding.FragmentHomeBinding
 import com.google.gson.Gson
 
@@ -25,16 +29,13 @@ class HomeFragment : Fragment() {
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        // 앨범 사진 클릭하면 AlbumFragment로 전환
-//        binding.itemAlbumCoverImgCardView01.setOnClickListener {
-//            (context as MainActivity).supportFragmentManager.beginTransaction().replace(R.id.main_frm, AlbumFragment()).commitAllowingStateLoss()
-//        }
-
         albumData.apply {
-            add(Album("LILAC", "아이유 (IU)", R.drawable.img_album_exp2))
-            add(Album("Butter", "방탄소년단 (BTS)", R.drawable.img_album_exp))
-            add(Album("LILAC", "아이유 (IU)", R.drawable.img_album_exp2))
-            add(Album("Butter", "방탄소년단 (BTS)", R.drawable.img_album_exp))
+            add(Album("LILAC", "아이유 (IU)", R.drawable.img_album_exp2, "music_lilac"))
+            add(Album("Butter", "방탄소년단 (BTS)", R.drawable.img_album_exp, "music_butter"))
+            add(Album("Next Level", "aespa", R.drawable.img_album_exp3, "music_next"))
+            add(Album("작은 것들을 위한 시", "방탄소년단 (BTS)", R.drawable.img_album_exp4, "music_boy"))
+            add(Album("BAAM", "모모랜드 (MOMOLAND)", R.drawable.img_album_exp5, "music_bboom"))
+            add(Album("Weekend", "태연 (TAEYEON)", R.drawable.img_album_exp6, "music_flu"))
         }
 
         val albumRVAdapter = AlbumRVAdapter(albumData)
@@ -45,7 +46,9 @@ class HomeFragment : Fragment() {
             override fun onItemClick(album: Album) {
                 changeAlbumFragment(album)
             }
-
+            override fun onPlayClick(album: Album) {
+                (requireActivity() as MainActivity).changeMusic(album)
+            }
 //            override fun onRemoveAlbum(position: Int) {
 //                albumRVAdapter.removeItem(position)
 //            }
