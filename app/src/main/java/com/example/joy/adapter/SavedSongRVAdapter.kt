@@ -34,6 +34,12 @@ class SavedSongRVAdapter(): RecyclerView.Adapter<SavedSongRVAdapter.ViewHolder>(
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun removeAllSongs() {
+        songs.clear()
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
         val binding: ItemBookmarkBinding = ItemBookmarkBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false)
 

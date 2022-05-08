@@ -10,11 +10,11 @@ import com.example.joy.data.SongDatabase
 import com.example.joy.databinding.ActivitySongBinding
 
 class SongActivity : AppCompatActivity() {
-    lateinit var binding: ActivitySongBinding
+    private lateinit var binding: ActivitySongBinding
     private lateinit var timer: Timer
     private var isSwitch: Boolean = false
     private val songs =  arrayListOf<Song>()
-    lateinit var songDB: SongDatabase
+    private lateinit var songDB: SongDatabase
     private var nowPos = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,8 +119,10 @@ class SongActivity : AppCompatActivity() {
 
         if (!isLike) {
             binding.songLikeIv.setImageResource(R.drawable.ic_my_like_on)
+            Toast.makeText(this,"${songs[nowPos].title} 곡을 좋아요 합니다.", Toast.LENGTH_SHORT).show()
         } else {
             binding.songLikeIv.setImageResource(R.drawable.ic_my_like_off)
+            Toast.makeText(this,"${songs[nowPos].title} 곡을 좋아요 취소합니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -146,7 +148,7 @@ class SongActivity : AppCompatActivity() {
             songs[nowPos].isPlaying = timer.getIsPlaying()
         }
 
-        songDB.songDao().update(songs[nowPos])
+        songDB.songDao().updatePlaytime(songs[nowPos].second, songs[nowPos].mills, songs[nowPos].isPlaying)
         //Log.d("sss", songDB.songDao().getSong(songs[nowPos].id).toString())
     }
 

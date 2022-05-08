@@ -5,21 +5,19 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import com.example.joy.data.Album
 import com.example.joy.data.Music
 import com.example.joy.data.Song
 import com.example.joy.data.SongDatabase
 import com.example.joy.databinding.ActivityMainBinding
-import com.google.gson.Gson
 
 class MainActivity : AppCompatActivity() {
-    lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
     private lateinit var timer: Timer
     private var isSwitch: Boolean = false
     private val songs = arrayListOf<Song>()
-    lateinit var songDB: SongDatabase
+    private lateinit var songDB: SongDatabase
     private var nowPos = 0
 
     companion object { var music: Music = Music() }
@@ -144,10 +142,6 @@ class MainActivity : AppCompatActivity() {
         setMiniPlayer(songs[nowPos])
     }
 
-    fun setLike(songId: Int) {
-        songs[getPlayingSongPosition(songId)].isLike = songDB.songDao().getSong(songId).isLike
-    }
-
     // 음악 플레이리스트에서 현재 음악의 position 값 반환
     private fun getPlayingSongPosition(songId: Int): Int {
         for (i in 0 until songs.size) {
@@ -170,7 +164,7 @@ class MainActivity : AppCompatActivity() {
             songs[nowPos].isPlaying = timer.getIsPlaying()
         }
 
-        songDB.songDao().update(songs[nowPos])
+        songDB.songDao().updatePlaytime(songs[nowPos].second, songs[nowPos].mills, songs[nowPos].isPlaying)
         //Log.d("sss", songDB.songDao().getSong(songs[nowPos].id).toString())
     }
 
