@@ -1,9 +1,11 @@
 package com.example.joy
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.joy.adapter.LockerVPAdapter
 import com.example.joy.databinding.FragmentLockerBinding
@@ -27,5 +29,39 @@ class LockerFragment : Fragment() {
         }.attach()
 
         return binding.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initView()
+    }
+
+    private fun getJwt(): Int {
+        val sharedPreferences = activity?.getSharedPreferences("auth", AppCompatActivity.MODE_PRIVATE)
+        return sharedPreferences!!.getInt("jwt", 0)
+    }
+
+    private fun initView() {
+        val jwt: Int = getJwt()
+        if (jwt == 0) {
+            binding.songLockerLoginTv.text = "로그인"
+            binding.songLockerLoginTv.setOnClickListener {
+                startActivity(Intent(activity, LoginActivity::class.java))
+            }
+        } else {
+            binding.songLockerLoginTv.text = "로그아웃"
+            binding.songLockerLoginTv.setOnClickListener {
+                logOut()
+                activity?.finish()
+                startActivity(Intent(activity, MainActivity::class.java))
+            }
+        }
+    }
+
+    private fun logOut() {
+        val sharedPreferences = activity?.getSharedPreferences("auth", AppCompatActivity.MODE_PRIVATE)
+        val editor = sharedPreferences!!.edit()
+        editor.remove("jwt")
+        editor.apply()
     }
 }
