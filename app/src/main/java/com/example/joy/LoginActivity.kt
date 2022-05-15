@@ -47,18 +47,18 @@ class LoginActivity : AppCompatActivity() {
 
         if (user != null) {
             Log.d("login", "userId: ${user.id}, $user")
-            saveJwt(user.id)
+            saveJwt(user.id.toString() + ',' + user.name)
         } else {
             Toast.makeText(this, "회원 정보가 존재하지 않습니다.", Toast.LENGTH_SHORT).show()
         }
         finish()
     }
 
-    private fun saveJwt(jwt: Int) {
+    private fun saveJwt(jwt: String) {
         val sharedPreferences = getSharedPreferences("auth", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
 
-        editor.putInt("jwt", jwt)
+        editor.putString("jwt", jwt)
         editor.apply()
     }
 }

@@ -25,7 +25,8 @@ class SignUpActivity : AppCompatActivity() {
     private fun getUser(): User {
         val email : String = binding.signUpIdEt.text.toString() + "@" + binding.signUpDirectInputEt.text.toString()
         val password: String = binding.signUpPasswordEt.text.toString()
-        return User(email, password)
+        var name : String = binding.signUpIdEt.text.toString()
+        return User(email, password, name)
     }
 
     private fun signUp() {
